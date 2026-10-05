@@ -1,0 +1,14 @@
+[plugins."workflow@agent-workflow-tooling"]
+enabled = true
+
+[plugins."org@agent-workflow-tooling"]
+enabled = true
+
+[plugins."context7@claude-plugins-official"]
+enabled = true
+
+[plugins."frontend@agent-workflow-tooling"]
+enabled = true
+
+[plugins."playwright@claude-plugins-official"]
+enabled = true
