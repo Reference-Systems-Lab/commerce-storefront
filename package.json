@@ -24,6 +24,7 @@
     "nuxt-security": "2.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@reference-systems-lab/eslint-config": "^0.1.0",
     "@reference-systems-lab/prettier-config": "^0.1.0",
     "@reference-systems-lab/tsconfig": "^0.1.0",

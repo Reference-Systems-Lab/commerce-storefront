@@ -3,6 +3,7 @@
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tools.tsbuildinfo",
+    "lib": ["ES2023", "DOM"],
     "types": ["node"]
   },
   "include": ["vitest.config.ts", "playwright.config.ts", "e2e/**/*.ts"]

@@ -21,6 +21,8 @@ export default defineNuxtConfig({
   routeRules: {
     // No prices, no scripts: built once (D-7).
     "/": { prerender: true, noScripts: true },
+    // The prerendered file is served without the page's headers, so send its visitors to / (D-20).
+    "/index.html": { redirect: { to: "/", statusCode: 301 } },
     // Prices: rendered on every request, never cached (#1 D2).
     "/products": { prerender: false, headers: { "cache-control": "no-store" } },
   },
