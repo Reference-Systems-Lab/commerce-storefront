@@ -1,0 +1,9 @@
+{
+  "extends": "@reference-systems-lab/tsconfig/base.json",
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tools.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": ["vitest.config.ts", "playwright.config.ts", "e2e/**/*.ts"]
+}

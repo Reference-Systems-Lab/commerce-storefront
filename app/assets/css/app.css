@@ -1,0 +1,30 @@
+/* Global styles: the page frame, plus the home page's rules, since Nuxt inlines a noScripts page's
+   own CSS as <style> (commerce-storefront#2 D-7). */
+body {
+  margin: 0;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-size-body);
+  line-height: var(--ds-font-line-height-normal);
+  color: var(--ds-color-text);
+  background: var(--ds-color-bg);
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: var(--ds-space-section) var(--ds-space-inset);
+}
+
+h1 {
+  font-size: var(--ds-text-size-display);
+  line-height: var(--ds-font-line-height-tight);
+}
+
+a {
+  color: var(--ds-color-accent);
+}
+
+a:focus-visible {
+  outline: var(--ds-focus-width) solid var(--ds-color-focus-ring);
+  outline-offset: var(--ds-focus-width);
+}
