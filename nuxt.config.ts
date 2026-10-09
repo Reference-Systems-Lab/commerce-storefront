@@ -32,7 +32,8 @@ export default defineNuxtConfig({
       extends: "@reference-systems-lab/tsconfig/vue-app.json",
       // Here rather than only in the preset, so it reaches every project Nuxt generates (D-22).
       compilerOptions: { noFallthroughCasesInSwitch: true },
-      vueCompilerOptions: { strictTemplates: true },
+      // Strict templates reject unknown attributes; data-* attributes are markup, not props.
+      vueCompilerOptions: { strictTemplates: true, dataAttributes: ["data-*"] },
     },
   },
 
