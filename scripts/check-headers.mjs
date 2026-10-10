@@ -90,7 +90,7 @@ const attributes = (raw) =>
     [...raw.matchAll(/([\w:-]+)(?:="([^"]*)")?/g)].map((m) => [m[1].toLowerCase(), m[2] ?? ""]),
   );
 const inlineScripts = (html) =>
-  [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+  [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)]
     .map((m) => ({ attrs: attributes(m[1]), body: m[2] }))
     .filter(({ attrs }) => !("src" in attrs));
 

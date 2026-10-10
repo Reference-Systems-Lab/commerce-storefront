@@ -14,7 +14,7 @@
     "build": "nuxt build",
     "lint": "npm run nuxt:prepare && eslint . && prettier --check .",
     "typecheck": "npm run nuxt:prepare && vue-tsc -b --noEmit",
-    "test": "vitest run --coverage",
+    "test": "npm run nuxt:prepare && vitest run --coverage",
     "knip": "npm run nuxt:prepare && knip"
   },
   "dependencies": {
