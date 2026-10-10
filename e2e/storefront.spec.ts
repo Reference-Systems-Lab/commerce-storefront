@@ -22,6 +22,10 @@ async function watch(page: Page, baseURL: string) {
     });
   });
   page.on("pageerror", (error) => problems.push(`page error: ${error.message}`));
+  page.on("dialog", (dialog) => {
+    problems.push(`dialog: ${dialog.message()}`);
+    void dialog.dismiss();
+  });
   page.on("console", (message) => {
     if (message.type() === "error") problems.push(`console error: ${message.text()}`);
   });
@@ -84,4 +88,17 @@ test("the violation detector catches a script without the nonce", async ({ page,
   await page.goto("/products");
   await expect.poll(() => violations(page)).not.toEqual([]);
   await expect(page).not.toHaveTitle("planted");
+});
+
+test("a product name holding markup stays text", async ({ page, baseURL }) => {
+  // fragment-smoke.sh plants the name and sets HOSTILE_SLUG; the test needs that data.
+  const slug = process.env.HOSTILE_SLUG;
+  test.skip(!slug, "needs the planted name (HOSTILE_SLUG)");
+  const problems = await watch(page, baseURL!);
+  await page.goto("/products");
+  await expect(page.locator(`[data-product="${slug}"] .product-name`)).toHaveText(
+    "</script><script>alert(1)</script>",
+  );
+  expect(await violations(page)).toEqual([]);
+  expect(problems).toEqual([]);
 });

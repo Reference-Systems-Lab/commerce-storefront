@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// The browser check (REQ-012), run in the pinned Playwright image against a running storefront:
-// http://storefront-web:3000 in the CI stub, or a local server in development (BASE_URL).
+// The browser check (REQ-012), run in the pinned Playwright image against a running storefront. In the
+// stub it shares storefront-web's network and browses http://localhost:3000 (BASE_URL), a trustworthy
+// origin like the platform's HTTPS one.
 export default defineConfig({
   testDir: "e2e",
   forbidOnly: true,

@@ -40,6 +40,12 @@ const FORBIDDEN_HEADERS = [
   "x-powered-by",
   "access-control-allow-origin",
 ];
+// D-1: true only once S5 records that Chromium needs 'inline-speculation-rules' on Nuxt 4.6.
+const SPECULATION_RULES_KEYWORD = false;
+// What must never reach a browser when the backend fails: its host, its port, the API's paths, URLs,
+// network errors or a stack trace (REQ-009).
+const LEAKS =
+  /backend-api|:8080|\/v1\/|https?:\/\/(?!localhost)|ENOTFOUND|ECONNREFUSED|AbortError|TimeoutError|fetch failed|\bat \S+:\d+:\d+/;
 
 async function get(path, init = {}) {
   const response = await fetch(`${base}${path}`, {
@@ -56,7 +62,10 @@ function parsePolicy(where, value) {
   const policy = {};
   for (const part of value.split(";")) {
     const [name, ...sources] = part.trim().split(/\s+/);
-    if (name) policy[name.toLowerCase()] = sources.sort();
+    if (!name) continue;
+    // Browsers enforce the first of a repeated directive, so a repeat could hide a weaker one.
+    if (name.toLowerCase() in policy) fail(where, `CSP repeats ${name.toLowerCase()}`);
+    else policy[name.toLowerCase()] = sources.sort();
   }
   return policy;
 }
@@ -118,7 +127,7 @@ async function checkIntegrity(where, html) {
 
 function checkMarkup(where, html) {
   if (/<style\b/i.test(html)) fail(where, "has a <style> element");
-  if (/\sstyle="/i.test(html)) fail(where, "has a style attribute");
+  if (/\sstyle\s*=/i.test(html)) fail(where, "has a style attribute");
   for (const link of tags(html, "link").map(attributes)) {
     if (link.rel === "prefetch") fail(where, `has a prefetch link to ${link.href}`);
   }
@@ -168,8 +177,8 @@ async function checkHome(where, response, html) {
   const csp = response.headers.get("content-security-policy");
   if (!csp) return fail(where, "no Content-Security-Policy header");
   const policy = parsePolicy(where, csp);
-  // 'inline-speculation-rules' is allowed only if Chromium turns out to need it (D-1).
-  const extra = (policy["script-src"] ?? []).filter((s) => s === "'inline-speculation-rules'");
+  // 'inline-speculation-rules' becomes allowed only once S5 records that Chromium needs it (D-1).
+  const extra = SPECULATION_RULES_KEYWORD ? ["'inline-speculation-rules'"] : [];
   comparePolicy(where, policy, {
     ...POLICY,
     "script-src": ["'strict-dynamic'", ...hashes, ...extra],
@@ -191,9 +200,17 @@ async function checkHome(where, response, html) {
 }
 
 if (unavailable) {
+  const started = performance.now();
   const { response, html } = await get("/products");
+  const took = performance.now() - started;
   if (response.status !== 503)
     fail("/products", `status ${response.status}, want 503 with the backend down`);
+  if (took >= 5000) fail("/products", `the 503 took ${Math.round(took)} ms, want under 5000`);
+  const headers = [...response.headers].map(([name, value]) => `${name}: ${value}`).join("\n");
+  const leak = LEAKS.exec(`${headers}\n${html}`);
+  if (leak) fail("/products (503)", `leaks "${leak[0]}"`);
+  if (!html.includes("This page isn&#39;t available right now"))
+    fail("/products (503)", "isn't error.vue's page");
   await checkRendered("/products (503)", response, html);
 } else {
   const first = await get("/products");
@@ -216,6 +233,11 @@ if (unavailable) {
   } else {
     await checkHome("/index.html", file.response, file.html);
   }
+
+  // Routes match case-sensitively, so no other spelling renders prices without no-store.
+  const shouted = await get("/PRODUCTS");
+  if (shouted.response.status !== 404)
+    fail("/PRODUCTS", `status ${shouted.response.status}, want 404`);
 
   const post = await get("/products", { method: "POST" });
   if (post.response.status !== 405)

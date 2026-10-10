@@ -53,11 +53,14 @@ scan)
   ;;
 rehearse)
   token
+  # The history and saved-image checks below look at this build, not an older one.
+  build --platform linux/amd64 --load -t "$IMAGE"
   build --platform linux/amd64,linux/arm64 --sbom=true --provenance=mode=max --output "type=oci,dest=$tmp/oci.tar"
   mkdir "$tmp/oci" && tar -xf "$tmp/oci.tar" -C "$tmp/oci"
   no_token "$tmp/oci"
   echo "rehearse: no token in the OCI layout, SBOM or provenance"
-  if docker history --no-trunc "$IMAGE" | grep -F -q -- "$NODE_AUTH_TOKEN"; then
+  docker history --no-trunc "$IMAGE" >"$tmp/history"
+  if grep -F -q -- "$NODE_AUTH_TOKEN" "$tmp/history"; then
     echo "error: the npm token is in the image history" >&2
     exit 1
   fi
@@ -77,8 +80,14 @@ rehearse)
   echo "rehearse: the arm64 image serves /"
   ;;
 run)
+  # The image's own configuration, as REQ-013 sets it.
+  got=$(docker image inspect -f '{{.Config.User}}|{{json .Config.Entrypoint}}|{{json .Config.Cmd}}|{{json .Config.Healthcheck.Test}}|{{index .Config.Labels "org.opencontainers.image.source"}}|{{index .Config.Labels "org.opencontainers.image.vendor"}}' "$IMAGE")
+  want='65532:65532|["/usr/bin/node"]|["/app/.output/server/index.mjs"]|["CMD","/usr/bin/node","/app/healthcheck.mjs"]|https://github.com/Reference-Systems-Lab/commerce-storefront|Reference-Systems-Lab'
+  [ "$got" = "$want" ] || { echo "error: the image's configuration is $got" >&2; exit 1; }
+  echo "run: the image's user, entrypoint, command, health check and labels"
+  # No --user: the image's own USER is what runs.
   docker run -d --name commerce-storefront-check --read-only --cap-drop ALL \
-    --security-opt no-new-privileges:true --init --user 65532:65532 --tmpfs /tmp:size=16m \
+    --security-opt no-new-privileges:true --init --tmpfs /tmp:size=16m \
     -e NUXT_API_BASE_URL=http://backend-api.invalid:8080 "$IMAGE" >/dev/null
   for _ in $(seq 1 60); do
     status=$(docker inspect -f '{{.State.Health.Status}}' commerce-storefront-check)
