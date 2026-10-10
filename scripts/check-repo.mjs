@@ -1,5 +1,5 @@
 // Repository checks that no off-the-shelf linter covers, run by scripts/lint.sh:
-//   node scripts/check-repo.mjs <npmrc|scripts|allow-scripts|nuxt-config|pins|pairs>
+//   node scripts/check-repo.mjs <npmrc|scripts|allow-scripts|nuxt-config|pins|pairs|fragment <config.json>>
 // Each prints what is wrong and exits non-zero. nuxt.config.ts is read with the TypeScript parser,
 // not loaded, so the checks need no build.
 import { execFileSync } from "node:child_process";
@@ -162,22 +162,56 @@ function nuxtSettings() {
   return problems;
 }
 
-/** Every action is pinned to a full commit SHA, with its version in a comment (DE-4). */
+/** Every action and image is pinned: actions to a full commit SHA, images by digest (DE-4). */
 function pins() {
   const problems = [];
+  const DIGEST = /@sha256:[0-9a-f]{64}(\s|"|$)/;
   for (const file of readdirSync(".github/workflows")) {
     readFileSync(join(".github/workflows", file), "utf8")
       .split("\n")
       .forEach((line, index) => {
+        const where = `.github/workflows/${file}:${index + 1}`;
         const use = /^\s*(?:-\s*)?uses:\s*(\S+)(.*)$/.exec(line);
-        if (!use || use[1].startsWith("./")) return;
-        if (!/@[0-9a-f]{40}$/.test(use[1]) || !/^\s+# v\d/.test(use[2])) {
-          problems.push(
-            `.github/workflows/${file}:${index + 1}: ${use[1]} isn't pinned to a commit SHA with "# vX.Y.Z"`,
-          );
+        if (use && !use[1].startsWith("./")) {
+          if (!/@[0-9a-f]{40}$/.test(use[1]) || !/^\s+# v\d+\.\d+\.\d+(\s|$)/.test(use[2])) {
+            problems.push(`${where}: ${use[1]} isn't pinned to a commit SHA with "# vX.Y.Z"`);
+          }
+        }
+        // Images that actions pull, such as QEMU's binfmt or BuildKit's builder; a bare name is an
+        // image the job built itself.
+        const image = /\bimage[=:]\s*"?([^\s",]+)/.exec(line);
+        if (image && image[1].includes("/") && !DIGEST.test(`${image[1]}"`)) {
+          problems.push(`${where}: ${image[1]} isn't pinned by digest`);
         }
       });
   }
+  const composeFiles = [
+    "compose.tools.yaml",
+    "compose.platform.yaml",
+    ...readdirSync("ci").map((f) => join("ci", f)),
+  ];
+  for (const file of composeFiles.filter((f) => /\.ya?ml$/.test(f))) {
+    readFileSync(file, "utf8")
+      .split("\n")
+      .forEach((line, index) => {
+        const image = /^\s*image:\s*(\S+)/.exec(line);
+        // The stand-in's locally built storefront is the one image without a digest.
+        if (image && image[1] !== "commerce-storefront:ci" && !DIGEST.test(image[1])) {
+          problems.push(`${file}:${index + 1}: ${image[1]} isn't pinned by digest`);
+        }
+      });
+  }
+  const stages = new Set();
+  readFileSync("Dockerfile", "utf8")
+    .split("\n")
+    .forEach((line, index) => {
+      const from = /^FROM\s+(?:--platform=\S+\s+)?(\S+)(?:\s+AS\s+(\S+))?/i.exec(line);
+      if (!from) return;
+      if (from[1] !== "scratch" && !stages.has(from[1]) && !DIGEST.test(from[1])) {
+        problems.push(`Dockerfile:${index + 1}: ${from[1]} isn't pinned by digest`);
+      }
+      if (from[2]) stages.add(from[2]);
+    });
   return problems;
 }
 
@@ -239,6 +273,51 @@ function pairs() {
   return problems;
 }
 
+/**
+ * The fragment, rendered by Compose as the platform would see it, keeps to the platform's rules for an
+ * application (platform scripts/lint.sh fragments_contained; ADR 0002) and to REQ-014.
+ */
+function fragment() {
+  const file = process.argv[3];
+  if (!file) return ["usage: node scripts/check-repo.mjs fragment <compose config --format json>"];
+  const { services = {} } = json(file);
+  const names = Object.keys(services);
+  if (names.join() !== "storefront-web")
+    return [`the fragment defines ${names.join(", ")}, want only storefront-web`];
+  const s = services["storefront-web"];
+  const problems = [];
+  const want = (ok, message) => ok || problems.push(`storefront-web ${message}`);
+  want(
+    /^[1-9][0-9]*(:[0-9]+)?$/.test(s.user ?? ""),
+    `user ${s.user ?? "unset"} isn't a numeric non-root user`,
+  );
+  want(s.read_only === true, "isn't read-only");
+  want((s.cap_drop ?? []).includes("ALL"), "doesn't drop all capabilities");
+  want((s.cap_add ?? []).length === 0, "adds capabilities");
+  want((s.security_opt ?? []).includes("no-new-privileges:true"), "lacks no-new-privileges");
+  want(s.privileged !== true, "is privileged");
+  want(s.init === true, "has no init process");
+  want(!s.network_mode, "sets network_mode");
+  want(s.pid !== "host" && s.ipc !== "host", "shares a host namespace");
+  want((s.ports ?? []).length === 0, "publishes ports");
+  want(!(s.volumes ?? []).some((v) => v.type === "bind"), "bind-mounts a host path");
+  want(
+    (s.tmpfs ?? []).some((t) => String(t).startsWith("/tmp")),
+    "has no /tmp tmpfs",
+  );
+  want(
+    s.stop_grace_period === "15s",
+    `stop_grace_period is ${s.stop_grace_period ?? "unset"}, want 15s`,
+  );
+  want("NUXT_API_BASE_URL" in (s.environment ?? {}), "doesn't set NUXT_API_BASE_URL");
+  const test = (s.healthcheck?.test ?? []).join(" ");
+  want(
+    test !== "" && !/backend|products/.test(test),
+    `health check "${test}" is missing or depends on the backend`,
+  );
+  return problems;
+}
+
 const checks = {
   npmrc,
   scripts,
@@ -246,6 +325,7 @@ const checks = {
   "nuxt-config": nuxtSettings,
   pins,
   pairs,
+  fragment,
 };
 const check = checks[process.argv[2]];
 const problems = check ? check() : [`unknown check: ${process.argv[2]}`];

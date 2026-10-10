@@ -48,9 +48,14 @@ jobs:
         run: make lint
 
   test:
-    name: Test
+    # Node 24 is the development runtime (DE-2); the image runs Node 26 (D-26), which formats prices.
+    name: Test (Node ${{ matrix.node }})
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [24, 26]
     permissions:
       contents: read
       packages: read
@@ -63,7 +68,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version: ${{ matrix.node }}
 
       - name: Install
         env:

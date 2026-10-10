@@ -19,13 +19,21 @@ COPY app ./app
 # No network: the home page is prerendered from the app alone (REQ-005). No native modules either,
 # since one built here would only suit the build machine.
 RUN --network=none node_modules/.bin/nuxt build \
- && if [ -n "$(find .output -name '*.node' -print -quit)" ]; then echo 'error: .output holds a native module' >&2; exit 1; fi
+ && if [ -n "$(find .output -name '*.node' -print -quit)" ]; then echo 'error: .output holds a native module' >&2; exit 1; fi \
+ && grep -q '"preset": "node-server"' .output/nitro.json
 
 FROM cgr.dev/chainguard/node:latest@sha256:140e2bda3b36b7c19ffaff951f21942d05d24cc77089cd7a9d9c91aece88a549
+# Ours, replacing the labels the base sets about itself.
 LABEL org.opencontainers.image.source="https://github.com/Reference-Systems-Lab/commerce-storefront" \
+      org.opencontainers.image.url="https://github.com/Reference-Systems-Lab/commerce-storefront" \
       org.opencontainers.image.title="commerce-storefront" \
       org.opencontainers.image.description="The commerce platform's storefront" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.vendor="Reference-Systems-Lab" \
+      org.opencontainers.image.authors="Reference-Systems-Lab" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.base.name="cgr.dev/chainguard/node:latest" \
+      dev.chainguard.image.title="" \
+      dev.chainguard.package.main=""
 COPY --from=build /src/.output /app/.output
 COPY docker/healthcheck.mjs /app/healthcheck.mjs
 USER 65532:65532

@@ -20,7 +20,12 @@ node -e '
   }' >"$tmp/packages"
 [ -s "$tmp/packages" ] || { echo "error: no @reference-systems-lab packages in package-lock.json" >&2; exit 1; }
 
-while read -r name version resolved integrity; do
+# The token goes to curl in a file, not on its command line, where ps would show it.
+printf 'Authorization: Bearer %s\n' "$NODE_AUTH_TOKEN" >"$tmp/auth"
+chmod 0600 "$tmp/auth"
+verified=0
+# The list comes in on descriptor 3, so nothing in the loop can swallow it from stdin.
+while read -r name version resolved integrity <&3; do
   case $name in
     @reference-systems-lab/commerce-api) repo=commerce-backend ;;
     *) repo=design-system ;;
@@ -34,8 +39,7 @@ while read -r name version resolved integrity; do
       exit 1
       ;;
   esac
-  curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $NODE_AUTH_TOKEN" \
-    -o "$tmp/package.tgz" "$resolved"
+  curl -fsSL --proto '=https' --proto-redir '=https' -H @"$tmp/auth" -o "$tmp/package.tgz" "$resolved"
   got="sha512-$(openssl dgst -sha512 -binary "$tmp/package.tgz" | base64 | tr -d '\n')"
   [ "$got" = "$integrity" ] || { echo "error: $name@$version doesn't match the lockfile's integrity" >&2; exit 1; }
   registry=$(npm view "$name@$version" dist.integrity)
@@ -43,4 +47,7 @@ while read -r name version resolved integrity; do
   gh attestation verify "$tmp/package.tgz" --repo "Reference-Systems-Lab/$repo" \
     --signer-workflow "Reference-Systems-Lab/$repo/.github/workflows/release.yml" >/dev/null
   echo "packages: $name@$version matches the lockfile and the registry, attested by $repo's release"
-done <"$tmp/packages"
+  verified=$((verified + 1))
+done 3<"$tmp/packages"
+listed=$(wc -l <"$tmp/packages" | tr -d ' ')
+[ "$verified" = "$listed" ] || { echo "error: verified $verified of $listed packages" >&2; exit 1; }

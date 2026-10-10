@@ -81,17 +81,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Fails closed: only "not found" (or no package yet) lets the build go on, so a registry error on
+      # a rerun can never push and move an existing version.
       - name: Skip if this version is already published
         id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if digest=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{.Manifest.Digest}}' 2>/dev/null); then
-            echo "$IMAGE:$VERSION is already published as $digest; not pushing it again"
-            echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          if out=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{.Manifest.Digest}}' 2>&1); then
+            echo "$IMAGE:$VERSION is already published as $out; not pushing it again"
+            echo "digest=$out" >> "$GITHUB_OUTPUT"
+          elif printf '%s' "$out" | grep -qiE 'not found|manifest unknown|name unknown'; then
+            echo "$IMAGE:$VERSION is not published yet"
+          elif gh api "/orgs/Reference-Systems-Lab/packages/container/commerce-storefront" 2>&1 | grep -q 'HTTP 404'; then
+            echo "$IMAGE has no versions yet; this is its first publication"
+          else
+            echo "::error::cannot tell whether $IMAGE:$VERSION exists: $out"
+            exit 1
           fi
 
+      # The builder that receives the npm secret and writes the SBOM and provenance, pinned by digest
+      # (bumped by hand; README).
       - name: Set up Buildx
         if: steps.existing.outputs.digest == ''
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: image=moby/buildkit:v0.33.1@sha256:cec9f139f45e93c5c69c60f8b07cfad9f43f4ef6b6a6cd917527fea5ff2e3dea
 
       - name: Build every installed package for scanning (the deps stage, not pushed)
         if: steps.existing.outputs.digest == ''
@@ -143,7 +158,9 @@ jobs:
           sbom: true
           provenance: mode=max
           tags: ${{ env.IMAGE }}:${{ env.VERSION }}
-          labels: org.opencontainers.image.version=${{ env.VERSION }}
+          labels: |
+            org.opencontainers.image.version=${{ env.VERSION }}
+            org.opencontainers.image.created=${{ github.event.release.published_at }}
           secrets: npm_token=${{ secrets.GITHUB_TOKEN }}
 
       - name: Attest the image's build provenance

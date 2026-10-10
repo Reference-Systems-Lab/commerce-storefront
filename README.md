@@ -124,6 +124,10 @@ Dependabot leaves two pairs alone, and `make lint` checks that each pair agrees:
   `ci/compose.backend.yaml`. The commit must be the commit of that release.
 - **Playwright:** the image in `ci/compose.browser.yaml`, and `@playwright/test` in the lockfile.
 
+Two images that workflows hand to actions aren't seen by Dependabot either, so they're bumped by hand
+(`make lint` checks they're pinned by digest): BuildKit's builder in `release.yml`, and QEMU's
+binfmt in `ci.yml`.
+
 ## Decisions
 
 - [ADR 0001: The storefront's stack](docs/adr/0001-storefront-stack.md)

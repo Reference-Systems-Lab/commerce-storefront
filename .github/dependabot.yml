@@ -29,6 +29,8 @@ updates:
     ignore:
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # Bumped by hand together with its browser image (make lint checks the pair).
+      - dependency-name: "@playwright/test"
 
   # The Dockerfile's Node build image and Chainguard runtime.
   - package-ecosystem: docker

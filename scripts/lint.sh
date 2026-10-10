@@ -26,7 +26,9 @@ step ".npmrc holds the hardened settings and no token (DE-2)" node scripts/check
 step "no lifecycle or pre/post hook scripts" node scripts/check-repo.mjs scripts
 step "allowScripts names every install script, each false" node scripts/check-repo.mjs allow-scripts
 step "Nuxt settings: preset, compatibility, tokens first, route rules, no islands" node scripts/check-repo.mjs nuxt-config
-step "actions pinned to a commit SHA" node scripts/check-repo.mjs pins
+step "actions pinned to a commit SHA, images by digest" node scripts/check-repo.mjs pins
+# shellcheck disable=SC2016 # the patterns are for git grep, not the shell
+step "no advisory allowlist: no allow-ghsas, only-fixed or Grype ignore file (D-2)" sh -c '! git grep -nIE "allow-ghsas[[:space:]]*:|only-fixed[[:space:]]*:|--only-fixed" -- . ":!*.md" ":!scripts/lint.sh" && ! git ls-files | grep -E "(^|/)\.grype\.ya?ml$"'
 step "hand-bumped pairs agree: the backend include and image, Playwright" node scripts/check-repo.mjs pairs
 step "ESLint and Prettier" npm run lint
 step "vue-tsc" npm run typecheck
