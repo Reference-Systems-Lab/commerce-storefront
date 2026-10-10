@@ -1,7 +1,7 @@
 #!/bin/sh
 # Static checks, the same locally (make lint) and in CI: the npm settings and package scripts, the
-# Nuxt settings the ADR fixes, then ESLint and Prettier, vue-tsc and Knip. Each check's output shows
-# only when it fails.
+# Nuxt settings the ADR fixes, then ESLint and Prettier, vue-tsc, Knip and hadolint. Each check's
+# output shows only when it fails.
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -29,6 +29,7 @@ step "Nuxt settings: preset, compatibility, tokens first, route rules, no island
 step "ESLint and Prettier" npm run lint
 step "vue-tsc" npm run typecheck
 step "Knip" npm run knip
+step "hadolint" env HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f compose.tools.yaml run --rm --quiet-pull hadolint Dockerfile
 
 if [ "$failures" -gt 0 ]; then
   printf '%s check(s) failed.\n' "$failures"

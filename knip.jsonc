@@ -1,6 +1,6 @@
 {
-  // Node scripts that scripts/*.sh and the Makefile run.
-  "entry": ["scripts/*.mjs"],
+  // Node scripts that scripts/*.sh and the Makefile run, and the image's health check.
+  "entry": ["scripts/*.mjs", "docker/*.mjs"],
   // Knip 6.39 reads the tokens stylesheet in nuxt.config.ts's `css` as one of our own files, can't
   // find it in node_modules, and so reports the package as both unused and unlisted. scripts/lint.sh
   // checks that tokens.css is the first `css` entry instead.

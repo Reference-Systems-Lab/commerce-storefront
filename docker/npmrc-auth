@@ -1,0 +1,2 @@
+# The build's npm user config: GitHub Packages' token from the npm_token build secret, never a file.
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
