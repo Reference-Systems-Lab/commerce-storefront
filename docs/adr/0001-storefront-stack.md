@@ -46,9 +46,12 @@ This record covers both. Where the skeleton changed a spike decision, it says so
   - turns any failure into a 503 from a generic error page that reveals nothing about the backend
     (#2 D-9).
 - **Prices.** The backend decides prices, and the storefront only formats them (#2 D-10):
-  - it formats the `{amount, currency}` minor units on the server with `Intl.NumberFormat('en-US')`,
-    the currency's fraction digits and decimal-string input, never floating-point maths;
-  - it sends the formatted label in the payload.
+  - it formats the `{amount, currency}` minor units on the server with `Intl.NumberFormat('en-US')`
+    and decimal-string input, never floating-point maths;
+  - the decimal point goes where ISO 4217's minor units put it. For 16 currencies these differ from
+    the digits Intl shows (CLDR); a table covers them, so no price is shown 100 times too large;
+  - it sends the formatted label in the payload;
+  - routes match exactly, so no other spelling of `/products` renders prices without `no-store`.
 - **Security headers.** nuxt-security 2.6, with every CSP directive set explicitly rather than
   through `strict: true` (#1 D5, as changed by #2 D-8):
   - `default-src 'none'`;
@@ -63,7 +66,10 @@ This record covers both. Where the skeleton changed a spike decision, it says so
   - only GET and HEAD are allowed.
 
   The prerendered home page can't carry a per-request nonce, so its policy lists a hash for each
-  inline script instead. A few defaults are turned off because every request reaches the app
+  inline script instead. `/index.html` redirects to `/`, because Nitro serves the prerendered file
+  without the page's headers (#2 D-20). A path starting with `//` still reaches that file without
+  them. The page runs no script and keeps its `<meta>` policy, and the platform's proxy can normalise
+  such paths. A few defaults are turned off because every request reaches the app
   through the proxy:
   - HSTS: the proxy sends it;
   - CORS;
@@ -81,14 +87,18 @@ This record covers both. Where the skeleton changed a spike decision, it says so
 - **Toolchain** (commerce#3 DE-3):
   - the design system's ESLint, Prettier and tsconfig packages, with Nuxt-specific adjustments kept
     local until they move upstream (#2 D-14);
-  - vue-tsc with `strictTemplates`, on TypeScript 6.0;
+  - vue-tsc with `strictTemplates`, on TypeScript 6.0, with `noFallthroughCasesInSwitch` set in every
+    project Nuxt generates (#2 D-22);
   - Vitest 5, Playwright 1.63 in three engines, and Knip.
 - **Supply chain.** The hardened `.npmrc` (commerce#3 DE-2):
   - no install scripts run; any package that has one is named in `allowScripts` and set to `false`;
   - packages must be at least seven days old, except our own scope;
   - no git or remote installs.
 
-  Third-party versions are pinned exactly, and ours by `^0.1.0` (#2 D-17). No high or critical
+  The tree's install scripts, esbuild's and macOS-only fsevents', are denied. esbuild finds its
+  binary in its optional platform package (#2 D-5). `simple-git` is overridden to 4.0.2, with
+  Nuxt's devtools off, until devtools ships simple-git 4 (#2 D-4). Third-party versions are pinned
+  exactly, and ours by `^0.1.0` (#2 D-17). No high or critical
   advisory is allowed in any scope, and none is ever allowlisted (#2 D-2):
   - Grype scans every installed package, development ones included;
   - dependency review fails on high.
@@ -115,6 +125,8 @@ This record covers both. Where the skeleton changed a spike decision, it says so
   - The platform's wiring file pins the image digest and puts the service on `edge`
     (commerce-platform#1 P-D2).
   - The health check and the home page don't depend on the backend.
+  - The platform's side, the include, the wiring and the proxy route for `rsl-commerce.test`, is the
+    platform's own issue. This repository's part ends at a released, verified v0.1.0 (#2 D-19).
 - **Releases.** A GitHub release `vX.Y.Z` on a commit on `main`, published by hand, runs one
   workflow, as the backend's does. In order, it:
   1. stops if the version already exists;
@@ -130,9 +142,12 @@ This record covers both. Where the skeleton changed a spike decision, it says so
   - ESLint, Prettier, vue-tsc, Knip, Vitest, hadolint and actionlint;
   - a CI stub that runs the real backend v0.1.0 and Postgres on internal networks, and drives the
     storefront with Playwright;
-  - Grype and dependency review;
+  - Grype at `high` and dependency review (#2 D-18);
   - CodeQL for JavaScript and TypeScript;
-  - Dependabot for npm, Docker, Compose and actions, with a seven-day cooldown;
+  - Dependabot for npm, Docker, Compose and actions, with a seven-day cooldown. It reads our packages
+    with the repository's own token through each package's Actions access, with no personal token
+    (#2 D-16);
+  - secret scanning and push protection on the repository (#2 D-24);
   - every action pinned by commit SHA.
 
 ## Alternatives
@@ -168,8 +183,11 @@ This record covers both. Where the skeleton changed a spike decision, it says so
 - The public image contains the SDK's built code. The SDK's source is in the public backend
   repository, so nothing is exposed that wasn't already (#2 D-23).
 - A page that shows prices must be server-rendered. Product data is shown through Vue's escaping,
-  never `v-html`. The nonce protects scripts Nuxt emits; it is defence in depth, not a substitute
-  for escaping.
+  never `v-html`, and the payload through devalue's.
+- nuxt-security adds the nonce to every script in the rendered page, so the CSP doesn't stop markup
+  injected into it: escaping is the control, and the fragment smoke plants a name holding markup to
+  prove it. The CSP still blocks inline event handlers and `javascript:` URLs (`script-src-attr
+  'none'`).
 - Each Nuxt release needs the CSP checks again. CI runs them in three browser engines.
 - Applications talk over plain HTTP on `edge`. It's internal and holds only services the platform
   defines; internal TLS is a later platform decision.
