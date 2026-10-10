@@ -5,7 +5,7 @@
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' Makefile | sed 's/:.*## /\t/'
 
-lint: ## Every static check CI runs: npm and Nuxt settings, ESLint, Prettier, vue-tsc, Knip and hadolint
+lint: ## Every static check CI runs: npm and Nuxt settings, pins, pairs, ESLint, Prettier, vue-tsc, Knip, Compose, hadolint, actionlint
 	sh ./scripts/lint.sh
 
 test: ## Unit tests with coverage thresholds
