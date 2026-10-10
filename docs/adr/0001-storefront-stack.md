@@ -13,6 +13,7 @@ that terminates TLS for `rsl-commerce.test`.
 
 The spike (commerce-storefront#1) compared Nuxt, Astro and hand-rolled Vite SSR, and decided D1 to
 D8. The walking skeleton (commerce-storefront#2) builds the first slice:
+
 - a prerendered home page;
 - a server-rendered `/products` page that lists the catalog through the SDK;
 - the image, the fragment, CI and the release.
@@ -74,6 +75,7 @@ This record covers both. Where the skeleton changed a spike decision, it says so
   - HSTS: the proxy sends it;
   - CORS;
   - the per-IP rate limiter.
+
 - **Speculation rules.** From 4.6, Nuxt adds an inline `<script type="speculationrules">` to every
   `noScripts` page, and it can't be turned off. It's declarative, so no code runs, and nuxt-security
   hashes it into the home page's policy. In Chromium, hovering the link may prerender `/products`.
@@ -105,6 +107,7 @@ This record covers both. Where the skeleton changed a spike decision, it says so
 
   CI checks each `@reference-systems-lab` tarball against the lockfile and its attestation
   (commerce#3 DE-10).
+
 - **Container** (#1 D8 as changed by #2 D-26; #2 D-11, D-12):
   - `.output` is built once on the build machine, with no network.
   - It's copied onto Chainguard's Node image, `cgr.dev/chainguard/node`, for `linux/amd64` and
@@ -138,6 +141,7 @@ This record covers both. Where the skeleton changed a spike decision, it says so
 
   The release job's own token is also the build's npm secret. That token can write packages, which
   is accepted because no install script runs and the build has no network (#2 D-21).
+
 - **Checks** (commerce#3 DE-4):
   - ESLint, Prettier, vue-tsc, Knip, Vitest, hadolint and actionlint;
   - a CI stub that runs the real backend v0.1.0 and Postgres on internal networks, and drives the
@@ -187,7 +191,7 @@ This record covers both. Where the skeleton changed a spike decision, it says so
 - nuxt-security adds the nonce to every script in the rendered page, so the CSP doesn't stop markup
   injected into it: escaping is the control, and the fragment smoke plants a name holding markup to
   prove it. The CSP still blocks inline event handlers and `javascript:` URLs (`script-src-attr
-  'none'`).
+'none'`).
 - Each Nuxt release needs the CSP checks again. CI runs them in three browser engines.
 - Applications talk over plain HTTP on `edge`. It's internal and holds only services the platform
   defines; internal TLS is a later platform decision.
