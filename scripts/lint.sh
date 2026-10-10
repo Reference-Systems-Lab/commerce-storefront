@@ -29,6 +29,7 @@ step "Nuxt settings: preset, compatibility, tokens first, route rules, no island
 step "ESLint and Prettier" npm run lint
 step "vue-tsc" npm run typecheck
 step "Knip" npm run knip
+step "the stub, the browser service and the tools are valid Compose" sh -c 'CI_SECRETS_DIR=/nonexistent docker compose -f ci/compose.stub.yaml -f ci/compose.browser.yaml config --quiet && docker compose -f compose.tools.yaml config --quiet'
 step "hadolint" env HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f compose.tools.yaml run --rm --quiet-pull hadolint Dockerfile
 
 if [ "$failures" -gt 0 ]; then

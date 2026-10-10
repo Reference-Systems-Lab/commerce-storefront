@@ -11,6 +11,8 @@ include:
       - https://github.com/Reference-Systems-Lab/commerce-backend.git#929b6f17e44e6eb5cc60b1e5faf2f23a46bbc921:compose.platform.yaml # v0.1.0
       - compose.backend.yaml
     env_file: backend.env
+  - path: [../compose.platform.yaml, compose.wiring.yaml]
+    env_file: storefront.env
 
 services:
   postgres:

@@ -1,6 +1,6 @@
 # Developer entry points. CI runs the same targets.
 .POSIX:
-.PHONY: help lint test build backend backend-down image scan rehearse
+.PHONY: help lint test build backend backend-down image scan rehearse fragment
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' Makefile | sed 's/:.*## /\t/'
@@ -29,3 +29,6 @@ scan: ## Grype at high on the image and on every installed package (the deps sta
 
 rehearse: ## The release's build: both platforms, SBOM and provenance, checked for the token; arm64 serves /
 	sh ./scripts/image.sh rehearse
+
+fragment: image ## Run compose.platform.yaml the way the platform does, with the real backend, and check it
+	SKIP_BUILD=1 sh ./scripts/fragment-smoke.sh
