@@ -26,11 +26,14 @@ step ".npmrc holds the hardened settings and no token (DE-2)" node scripts/check
 step "no lifecycle or pre/post hook scripts" node scripts/check-repo.mjs scripts
 step "allowScripts names every install script, each false" node scripts/check-repo.mjs allow-scripts
 step "Nuxt settings: preset, compatibility, tokens first, route rules, no islands" node scripts/check-repo.mjs nuxt-config
+step "actions pinned to a commit SHA" node scripts/check-repo.mjs pins
+step "hand-bumped pairs agree: the backend include and image, Playwright" node scripts/check-repo.mjs pairs
 step "ESLint and Prettier" npm run lint
 step "vue-tsc" npm run typecheck
 step "Knip" npm run knip
 step "the stub, the browser service and the tools are valid Compose" sh -c 'CI_SECRETS_DIR=/nonexistent docker compose -f ci/compose.stub.yaml -f ci/compose.browser.yaml config --quiet && docker compose -f compose.tools.yaml config --quiet'
 step "hadolint" env HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f compose.tools.yaml run --rm --quiet-pull hadolint Dockerfile
+step "actionlint" env HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f compose.tools.yaml run --rm --quiet-pull actionlint
 
 if [ "$failures" -gt 0 ]; then
   printf '%s check(s) failed.\n' "$failures"

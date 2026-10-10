@@ -15,17 +15,8 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"; docker rm -f commerce-storefront-check >/dev/null 2>&1 || true' EXIT
 
 # The build's npm_token secret: NODE_AUTH_TOKEN, or the GitHub Packages token in ~/.npmrc.
-token() {
-  if [ -z "${NODE_AUTH_TOKEN:-}" ] && [ -f "$HOME/.npmrc" ]; then
-    NODE_AUTH_TOKEN=$(sed -n 's#^//npm\.pkg\.github\.com/:_authToken=##p' "$HOME/.npmrc" | head -n 1)
-    case $NODE_AUTH_TOKEN in '${'*) NODE_AUTH_TOKEN= ;; esac
-  fi
-  if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-    echo "error: set NODE_AUTH_TOKEN, or put a read:packages token in ~/.npmrc (README)" >&2
-    exit 1
-  fi
-  export NODE_AUTH_TOKEN
-}
+# shellcheck source=scripts/token.sh
+token() { . ./scripts/token.sh; }
 
 build() { docker buildx build --secret id=npm_token,env=NODE_AUTH_TOKEN "$@" .; }
 tools() { HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f compose.tools.yaml run --rm --quiet-pull "$@"; }

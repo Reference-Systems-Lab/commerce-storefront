@@ -1,7 +1,8 @@
 // Repository checks that no off-the-shelf linter covers, run by scripts/lint.sh:
-//   node scripts/check-repo.mjs <npmrc|scripts|allow-scripts|nuxt-config>
+//   node scripts/check-repo.mjs <npmrc|scripts|allow-scripts|nuxt-config|pins|pairs>
 // Each prints what is wrong and exits non-zero. nuxt.config.ts is read with the TypeScript parser,
 // not loaded, so the checks need no build.
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
@@ -161,11 +162,90 @@ function nuxtSettings() {
   return problems;
 }
 
+/** Every action is pinned to a full commit SHA, with its version in a comment (DE-4). */
+function pins() {
+  const problems = [];
+  for (const file of readdirSync(".github/workflows")) {
+    readFileSync(join(".github/workflows", file), "utf8")
+      .split("\n")
+      .forEach((line, index) => {
+        const use = /^\s*(?:-\s*)?uses:\s*(\S+)(.*)$/.exec(line);
+        if (!use || use[1].startsWith("./")) return;
+        if (!/@[0-9a-f]{40}$/.test(use[1]) || !/^\s+# v\d/.test(use[2])) {
+          problems.push(
+            `.github/workflows/${file}:${index + 1}: ${use[1]} isn't pinned to a commit SHA with "# vX.Y.Z"`,
+          );
+        }
+      });
+  }
+  return problems;
+}
+
+/**
+ * The pins bumped by hand agree: the stub includes the backend's fragment at the commit of the release
+ * its image tag names (as the platform's releases_agree checks), and the Playwright image runs the
+ * version of @playwright/test in the lockfile.
+ */
+function pairs() {
+  const problems = [];
+  const stub = readFileSync("ci/compose.stub.yaml", "utf8");
+  const include = /commerce-backend\.git#([0-9a-f]{40}):compose\.platform\.yaml # (v[\d.]+)/.exec(
+    stub,
+  );
+  const images = [
+    ...readFileSync("ci/compose.backend.yaml", "utf8").matchAll(
+      /commerce-backend:([\d.]+)@sha256:/g,
+    ),
+  ];
+  if (!include)
+    problems.push(
+      "ci/compose.stub.yaml doesn't include the backend's fragment at a commit with its release",
+    );
+  else if (images.length === 0)
+    problems.push("ci/compose.backend.yaml doesn't pin the backend's image");
+  else {
+    const [, commit, release] = include;
+    for (const [, version] of images) {
+      if (`v${version}` !== release)
+        problems.push(`the backend image is ${version}, but the include names ${release}`);
+    }
+    const refs = execFileSync(
+      "git",
+      [
+        "ls-remote",
+        "https://github.com/Reference-Systems-Lab/commerce-backend.git",
+        `refs/tags/${release}`,
+        `refs/tags/${release}^{}`,
+      ],
+      { encoding: "utf8" },
+    );
+    const tagged = refs
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => line.split("\t"));
+    const target = (tagged.find(([, ref]) => ref.endsWith("^{}")) ?? tagged[0])?.[0];
+    if (target !== commit)
+      problems.push(`${release} is commit ${target ?? "missing"}, but the stub includes ${commit}`);
+  }
+  const browser = /playwright:v([\d.]+)-noble@sha256:/.exec(
+    readFileSync("ci/compose.browser.yaml", "utf8"),
+  );
+  const locked = json("package-lock.json").packages["node_modules/@playwright/test"]?.version;
+  if (browser?.[1] !== locked) {
+    problems.push(
+      `the Playwright image is ${browser?.[1] ?? "missing"}, but the lockfile has @playwright/test ${locked}`,
+    );
+  }
+  return problems;
+}
+
 const checks = {
   npmrc,
   scripts,
   "allow-scripts": allowScripts,
   "nuxt-config": nuxtSettings,
+  pins,
+  pairs,
 };
 const check = checks[process.argv[2]];
 const problems = check ? check() : [`unknown check: ${process.argv[2]}`];

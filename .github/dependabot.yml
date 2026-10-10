@@ -1,8 +1,64 @@
 version: 2
 
+# Every ecosystem waits 7 days after a release before proposing it, and groups its routine updates
+# into one pull request. Images are pinned by tag and digest; Dependabot updates both.
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-  # Add this repository's package ecosystem as its code lands
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Our own packages skip the cooldown; TypeScript stays on 6.0, which vue-tsc and typescript-eslint
+  # need (commerce#3 DE-3). Dependabot reads GitHub Packages with this repository's Read access.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+      exclude: ["@reference-systems-lab/*"]
+    groups:
+      npm:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+
+  # The Dockerfile's Node build image and Chainguard runtime.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      base-images:
+        patterns: ["*"]
+
+  # compose.tools.yaml (the development tools) and ci/ (the stand-in platform and the browsers).
+  - package-ecosystem: docker-compose
+    directories: ["/", "/ci"]
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      tool-images:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      # The stand-in's locally built storefront image; nothing to update.
+      - dependency-name: commerce-storefront
+      # Follow the platform's Postgres major, never ahead of it.
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
+      # Bumped by hand, each with its pair (make lint checks): the backend image with the stub's
+      # include, and the Playwright image with @playwright/test.
+      - dependency-name: ghcr.io/reference-systems-lab/commerce-backend
+      - dependency-name: mcr.microsoft.com/playwright
