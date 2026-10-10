@@ -25,7 +25,17 @@ while read -r name version resolved integrity; do
     @reference-systems-lab/commerce-api) repo=commerce-backend ;;
     *) repo=design-system ;;
   esac
-  curl -fsSL -H "Authorization: Bearer $NODE_AUTH_TOKEN" -o "$tmp/package.tgz" "$resolved"
+  # The token goes only where npm itself would send it: this package's download on GitHub Packages. A
+  # lockfile naming any other host is refused before any request.
+  case $resolved in
+    "https://npm.pkg.github.com/download/$name/$version/"*) ;;
+    *)
+      echo "error: $name@$version resolves outside GitHub Packages: $resolved" >&2
+      exit 1
+      ;;
+  esac
+  curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $NODE_AUTH_TOKEN" \
+    -o "$tmp/package.tgz" "$resolved"
   got="sha512-$(openssl dgst -sha512 -binary "$tmp/package.tgz" | base64 | tr -d '\n')"
   [ "$got" = "$integrity" ] || { echo "error: $name@$version doesn't match the lockfile's integrity" >&2; exit 1; }
   registry=$(npm view "$name@$version" dist.integrity)
