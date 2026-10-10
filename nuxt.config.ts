@@ -15,6 +15,9 @@ export default defineNuxtConfig({
   features: { inlineStyles: false },
   build: { transpile: [/^@reference-systems-lab\//] },
 
+  // Paths match exactly, as Nitro's route rules do, so /Products can't render prices without them.
+  router: { options: { sensitive: true } },
+
   // Private: only the server reads it, from NUXT_API_BASE_URL (D-6).
   runtimeConfig: { apiBaseUrl: "" },
 

@@ -1,14 +1,15 @@
+import type { ProductPage } from "@reference-systems-lab/commerce-api";
 import { describe, expect, it } from "vitest";
 import { LIMIT, listProducts } from "./catalog";
 
 const BASE = "http://backend.test";
 const PAGE = {
   items: [
-    { id: "1", slug: "canvas-tote", name: "Canvas Tote", price: { amount: 2400, currency: "USD" } },
-    { id: "2", slug: "wool-throw", name: "Wool Throw", price: { amount: 8900, currency: "USD" } },
+    { id: 1, slug: "canvas-tote", name: "Canvas Tote", price: { amount: 2400, currency: "USD" } },
+    { id: 2, slug: "wool-throw", name: "Wool Throw", price: { amount: 8900, currency: "USD" } },
   ],
   next_cursor: null,
-};
+} satisfies ProductPage;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 

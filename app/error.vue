@@ -4,7 +4,7 @@ import "~/assets/css/error.css";
 
 // Shows only the status: never the error's message or stack, which may name a backend (REQ-009).
 const props = defineProps<{ error: NuxtError }>();
-const notFound = props.error.statusCode === 404;
+const notFound = props.error.status === 404;
 const heading = notFound ? "Page not found" : "This page isn't available right now";
 
 useSeoMeta({ title: `${heading} · Reference Systems Lab` });
