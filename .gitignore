@@ -1,2 +1,10 @@
 # Agent working files such as worklog ledgers; the record lives in GitHub issues.
 .agent/
+# Dependencies, Nuxt's generated files and build output, and test reports.
+node_modules/
+.nuxt/
+.output/
+.data/
+coverage/
+test-results/
+playwright-report/
