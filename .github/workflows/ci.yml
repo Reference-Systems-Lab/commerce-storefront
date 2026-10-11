@@ -37,7 +37,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install
         env:
@@ -48,14 +48,9 @@ jobs:
         run: make lint
 
   test:
-    # Node 24 is the development runtime (DE-2); the image runs Node 26 (D-26), which formats prices.
-    name: Test (Node ${{ matrix.node }})
+    name: Test
     runs-on: ubuntu-26.04
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [24, 26]
     permissions:
       contents: read
       packages: read
@@ -68,7 +63,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 26
 
       - name: Install
         env:
@@ -113,7 +108,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Verify each of our packages against the lockfile, the registry and its attestation
         env:
@@ -137,7 +132,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install (the browser container uses this checkout's node_modules)
         env:
@@ -172,3 +167,17 @@ jobs:
         with:
           fail-on-severity: high
           fail-on-scopes: runtime, development, unknown
+
+      # The action logs only the first vulnerable package (its `vulnFound ||= print…` stops calling
+      # print once one is found), so list them all from the same API.
+      - name: List every vulnerable dependency this pull request adds
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # shellcheck disable=SC2016 # a jq program: its $ names are jq's, not the shell's
+          gh api "repos/$GITHUB_REPOSITORY/dependency-graph/compare/$BASE...$HEAD" --jq '
+            .[] | select(.change_type == "added") | . as $c | $c.vulnerabilities[]
+            | "\($c.manifest) » \($c.name)@\($c.version) (\($c.scope)): \(.advisory_ghsa_id), \(.severity): \(.advisory_summary)"'
