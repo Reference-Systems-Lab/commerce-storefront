@@ -240,9 +240,14 @@ if (unavailable) {
     ["//products", "/products"],
     ["//evil.example/x", "/evil.example/x"],
     ["/\\evil.example", "/evil.example"],
+    // h3 decodes %09 to a tab, which a browser drops: "/\t/evil.example" would mean evil.example.
+    ["//%09/evil.example", "/"],
   ]) {
     const { response } = await get(path);
     const location = response.headers.get("location");
+    if (location && new URL(location, base).origin !== new URL(base).origin) {
+      fail(path, `redirects off the site, to ${location}`);
+    }
     if (response.status !== 301 || location !== want) {
       fail(path, `status ${response.status} to ${location}, want 301 to ${want}`);
     }
