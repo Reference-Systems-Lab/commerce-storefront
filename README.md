@@ -36,7 +36,7 @@ discovery and buying. Everything else in the platform exists to support it.
 
 ## Getting started
 
-You need Node 24 and Docker. Everything else (hadolint, actionlint, Grype, Postgres, the backend,
+You need Node 26 (`.nvmrc`; commerce#11) and Docker. Everything else (hadolint, actionlint, Grype, Postgres, the backend,
 the browsers) runs in pinned containers.
 
 Our packages come from GitHub Packages, which needs a token even to read. Create a classic personal

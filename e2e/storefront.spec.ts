@@ -27,7 +27,12 @@ async function watch(page: Page, baseURL: string) {
     void dialog.dismiss();
   });
   page.on("console", (message) => {
-    if (message.type() === "error") problems.push(`console error: ${message.text()}`);
+    if (message.type() !== "error") return;
+    // WebKit refuses Nuxt's speculation-rules prefetch over plain HTTP, even on localhost. Only this
+    // test setup is HTTP; the platform serves HTTPS, and its issue repeats this check there (#2 S13).
+    const httpOnly = /^Prefetch request denied: URL must be secure \(HTTPS\)$/;
+    if (new URL(baseURL).protocol === "http:" && httpOnly.test(message.text())) return;
+    problems.push(`console error: ${message.text()}`);
   });
   page.on("request", (request) => {
     if (new URL(request.url()).origin !== new URL(baseURL).origin) {

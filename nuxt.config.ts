@@ -40,6 +40,10 @@ export default defineNuxtConfig({
       // Strict templates reject unknown attributes; data-* attributes are markup, not props.
       vueCompilerOptions: { strictTemplates: true, dataAttributes: ["data-*"] },
     },
+    // Compatibility 5 types nuxt.config.ts with nodenext resolution, but Nitro 2's types re-export
+    // without a file extension, which nodenext can't follow, so the route rules lose their type.
+    // Bundler, as the other projects use, until Nitro 3 (D-28).
+    nodeTsConfig: { compilerOptions: { module: "ESNext", moduleResolution: "Bundler" } },
   },
 
   // Every directive is set: arrays replace nuxt-security's defaults, but omitted directives keep
