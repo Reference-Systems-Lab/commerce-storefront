@@ -16,6 +16,7 @@ COPY --from=install /src/node_modules /node_modules
 FROM install AS build
 COPY nuxt.config.ts ./
 COPY app ./app
+COPY server ./server
 # No network: the home page is prerendered from the app alone (REQ-005). No native modules either,
 # since one built here would only suit the build machine.
 RUN --network=none node_modules/.bin/nuxt build \

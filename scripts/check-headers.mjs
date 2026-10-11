@@ -234,6 +234,20 @@ if (unavailable) {
     await checkHome("/index.html", file.response, file.html);
   }
 
+  // A path starting with "//" (or "/\\") is redirected to one leading slash (D-29), never off the site.
+  for (const [path, want] of [
+    ["//x", "/x"],
+    ["//products", "/products"],
+    ["//evil.example/x", "/evil.example/x"],
+    ["/\\evil.example", "/evil.example"],
+  ]) {
+    const { response } = await get(path);
+    const location = response.headers.get("location");
+    if (response.status !== 301 || location !== want) {
+      fail(path, `status ${response.status} to ${location}, want 301 to ${want}`);
+    }
+  }
+
   // Routes match case-sensitively, so no other spelling renders prices without no-store.
   const shouted = await get("/PRODUCTS");
   if (shouted.response.status !== 404)
