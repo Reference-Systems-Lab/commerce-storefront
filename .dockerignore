@@ -1,0 +1,10 @@
+# Only what the build needs reaches the build context.
+*
+!package.json
+!package-lock.json
+!.npmrc
+!nuxt.config.ts
+!app
+!server
+!docker
+**/*.test.ts
