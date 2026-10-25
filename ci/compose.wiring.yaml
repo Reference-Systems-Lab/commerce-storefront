@@ -1,0 +1,8 @@
+# Stands in for the platform's compose/compose.storefront.yaml: the image (here the local build instead
+# of a digest) and the network. No start order: neither the health check nor the home page needs the
+# backend.
+services:
+  storefront-web:
+    image: commerce-storefront:ci
+    pull_policy: never
+    networks: [edge]
