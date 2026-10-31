@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs Postgres and the backend v0.1.0 for development, seeded, with the API on 127.0.0.1:18080.
+# Runs Postgres and the backend v0.1.1 for development, seeded, with the API on 127.0.0.1:18080.
 #   sh scripts/backend.sh up | down
 set -eu
 cd "$(dirname "$0")/.."

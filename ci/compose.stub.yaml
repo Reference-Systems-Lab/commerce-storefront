@@ -1,5 +1,5 @@
 # A stand-in for the platform (commerce-platform compose.yaml, ADR 0002), so the storefront runs the
-# way the platform runs it: Postgres, the backend's own fragment at its v0.1.0 release with the
+# way the platform runs it: Postgres, the backend's own fragment at its v0.1.1 release with the
 # platform's wiring, and, from compose.wiring.yaml, the storefront's fragment. Both networks are
 # internal, as on the platform, so nothing here can reach the internet; development publishes the API
 # through compose.dev.yaml, and CI checks from a container on `edge`. The backend's commit, its
@@ -8,7 +8,7 @@ name: commerce-storefront-ci
 
 include:
   - path:
-      - https://github.com/Reference-Systems-Lab/commerce-backend.git#929b6f17e44e6eb5cc60b1e5faf2f23a46bbc921:compose.platform.yaml # v0.1.0
+      - https://github.com/Reference-Systems-Lab/commerce-backend.git#18d9b5ead8e3de829db68d4e0efbb74939c6812e:compose.platform.yaml # v0.1.1
       - compose.backend.yaml
     env_file: backend.env
   - path: [../compose.platform.yaml, compose.wiring.yaml]

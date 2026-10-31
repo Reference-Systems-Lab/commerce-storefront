@@ -52,7 +52,7 @@ Don't use `gh auth token`: it carries `repo`. The scripts also accept the token 
 
 ```sh
 npm ci          # the hardened install: no install scripts, packages at least 7 days old
-make backend    # Postgres and the backend v0.1.0, seeded, on 127.0.0.1:18080
+make backend    # Postgres and the backend v0.1.1, seeded, on 127.0.0.1:18080
 NUXT_API_BASE_URL=http://127.0.0.1:18080 npm run dev
 make lint       # every static check CI runs
 make test       # unit tests with coverage thresholds

@@ -10,7 +10,7 @@ if (!base || (hostileAt > 0 && !hostile)) {
   process.exit(2);
 }
 
-// The development catalog the backend seeds (commerce-backend v0.1.0, internal/catalog/seed.go), in
+// The development catalog the backend seeds (commerce-backend v0.1.1, internal/catalog/seed.go), in
 // the API's order, with the labels the storefront must make from its minor units.
 const SEEDED = [
   ["canvas-tote", "Canvas Tote", "$24.00"],
