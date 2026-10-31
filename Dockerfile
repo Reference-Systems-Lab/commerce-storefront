@@ -2,7 +2,7 @@
 # commerce-storefront#2 D-26). The output is the same on every architecture, so it's built once on the
 # build machine and copied onto each platform's base, with no emulation. Build and runtime run the same
 # Node. The npm token reaches only `npm ci`, as a BuildKit secret (REQ-013).
-FROM --platform=$BUILDPLATFORM node:26.11.1-trixie-slim@sha256:193fe51b64e77981119c98c2002c9e32a70e2f006fb4d25068ce0558998917f0 AS install
+FROM --platform=$BUILDPLATFORM node:26.12.1-trixie-slim@sha256:94816674c62774da0d099a947bf4613b9e1972a2733abd0d0cd80e795f8411d0 AS install
 WORKDIR /src
 COPY package.json package-lock.json .npmrc ./
 COPY docker/npmrc-auth docker/npmrc-auth
@@ -23,7 +23,7 @@ RUN --network=none node_modules/.bin/nuxt build \
  && if [ -n "$(find .output -name '*.node' -print -quit)" ]; then echo 'error: .output holds a native module' >&2; exit 1; fi \
  && grep -q '"preset": "node-server"' .output/nitro.json
 
-FROM cgr.dev/chainguard/node:latest@sha256:140e2bda3b36b7c19ffaff951f21942d05d24cc77089cd7a9d9c91aece88a549
+FROM cgr.dev/chainguard/node:latest@sha256:6cb70d6b2a324e491263949ea9f58938ed19031ef478e0bdb0b1810f96f8b400
 # Ours, replacing the labels the base sets about itself.
 LABEL org.opencontainers.image.source="https://github.com/Reference-Systems-Lab/commerce-storefront" \
       org.opencontainers.image.url="https://github.com/Reference-Systems-Lab/commerce-storefront" \
