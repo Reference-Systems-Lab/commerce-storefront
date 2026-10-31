@@ -1,0 +1,21 @@
+.products {
+  display: grid;
+  gap: var(--ds-space-stack);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ds-space-inline);
+  padding: var(--ds-space-inset);
+  background: var(--ds-color-surface);
+  border: var(--ds-stroke-1) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-card);
+}
+
+.product-price {
+  font-weight: var(--ds-font-weight-bold);
+}

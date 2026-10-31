@@ -1,0 +1,44 @@
+# The development tools `make` runs, pinned by digest like every other image. A separate project, so
+# it never touches the stub's. Each runs hardened and sees the checkout read-only; only Grype has a
+# network, to fetch its vulnerability database.
+name: commerce-storefront-tools
+
+x-tool: &tool
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  init: true
+  network_mode: none
+  user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+  working_dir: /src
+  tmpfs: ["/tmp:size=256m"]
+  volumes:
+    - { type: bind, source: ., target: /src, read_only: true, bind: { create_host_path: false } }
+
+services:
+  hadolint:
+    <<: *tool
+    image: hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d
+    entrypoint: ["/bin/hadolint"]
+
+  actionlint:
+    <<: *tool
+    image: rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+
+  # Scans what scripts/image.sh exports to SCAN_DIR: an image archive and the deps stage's files.
+  grype:
+    <<: *tool
+    network_mode: bridge
+    image: anchore/grype:v0.120.0@sha256:5c88961f4130e830542d441c7ed6c78baa28e799163abac53d2be4923fb5ab7d
+    tmpfs: ["/tmp:size=4g,mode=1777"] # it unpacks each image archive here
+    environment:
+      GRYPE_DB_CACHE_DIR: /cache
+      GRYPE_CHECK_FOR_APP_UPDATE: "false"
+    volumes:
+      - {
+          type: bind,
+          source: "${SCAN_DIR:-/nonexistent-run-make-scan}",
+          target: /scan,
+          read_only: true,
+        }
+      - { type: bind, source: "${GRYPE_CACHE:-/nonexistent-run-make-scan}", target: /cache }

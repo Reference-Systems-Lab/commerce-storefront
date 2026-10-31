@@ -1,0 +1,9 @@
+.nuxt/
+.output/
+.data/
+coverage/
+test-results/
+playwright-report/
+package-lock.json
+# Managed by the organization setup (agent-workflow-tooling), not this repository.
+.github/ISSUE_TEMPLATE/

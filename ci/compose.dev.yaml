@@ -1,0 +1,10 @@
+# Development only: publishes the backend's API on 127.0.0.1:18080 through an ordinary network, so
+# `npm run dev` or `node .output/server/index.mjs` on this machine can reach it. CI never uses this
+# file: an internal network can't publish a port, and checks there run from a container on `edge`.
+services:
+  backend-api:
+    networks: [data, edge, dev]
+    ports: ["127.0.0.1:18080:8080"]
+
+networks:
+  dev: {}

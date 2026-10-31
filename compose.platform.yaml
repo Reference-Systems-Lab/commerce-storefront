@@ -1,0 +1,22 @@
+# The storefront's contract with the platform (commerce-platform#1 P-D2; ADR 0001). The platform
+# includes this file together with its own wiring file, which sets the image digest and the network.
+# So this file sets no image, ports, networks or depends_on, and names no host: the backend's address
+# arrives as a required variable. The health check and the home page don't depend on the backend.
+services:
+  storefront-web:
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    init: true
+    user: "65532:65532"
+    tmpfs: ["/tmp:size=16m"]
+    environment:
+      NUXT_API_BASE_URL: ${STOREFRONT_API_BASE_URL:?the platform sets the backend API's address}
+    stop_grace_period: 15s # Nitro drains for up to 10 s on SIGTERM
+    healthcheck:
+      test: ["CMD", "/usr/bin/node", "/app/healthcheck.mjs"]
+      interval: 10s
+      timeout: 4s
+      retries: 3
+      start_period: 10s
+      start_interval: 1s

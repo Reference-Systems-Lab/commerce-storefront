@@ -1,0 +1,28 @@
+# CI only: the pinned Playwright browsers, sharing storefront-web's network so they browse
+# http://localhost:3000, a trustworthy origin like the platform's HTTPS one (commerce-storefront#2 S5).
+# The checkout is mounted read-only; its node_modules come from npm ci on the runner.
+services:
+  browser:
+    image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+    profiles: [checks]
+    network_mode: service:storefront-web
+    user: pwuser
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    init: true
+    shm_size: 1gb # Chromium's shared memory
+    tmpfs: ["/tmp:size=512m,mode=1777"]
+    working_dir: /work
+    environment:
+      HOME: /tmp
+      BASE_URL: http://localhost:3000
+      PLAYWRIGHT_OUTPUT_DIR: /tmp/test-results
+    volumes:
+      - {
+          type: bind,
+          source: ..,
+          target: /work,
+          read_only: true,
+          bind: { create_host_path: false },
+        }
