@@ -25,9 +25,9 @@
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
-    "@reference-systems-lab/eslint-config": "^0.1.0",
+    "@reference-systems-lab/eslint-config": "^0.2.0",
     "@reference-systems-lab/prettier-config": "^0.1.0",
-    "@reference-systems-lab/tsconfig": "^0.1.0",
+    "@reference-systems-lab/tsconfig": "^0.2.0",
     "@types/node": "26.6.4",
     "@vitest/coverage-v8": "5.0.3",
     "eslint": "10.12.0",

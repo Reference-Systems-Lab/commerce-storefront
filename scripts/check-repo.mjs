@@ -19,18 +19,10 @@ const NPMRC = [
   "@reference-systems-lab:registry=https://npm.pkg.github.com",
   "min-release-age-exclude[]=@reference-systems-lab/*",
 ];
-// Temporary exemptions from the 7-day window (#2 D-27, @ABilenduke): each is allowed only until the
-// version installed is 7 days old, after which the line must come out of .npmrc.
+// Temporary exemptions from the 7-day window, for security fixes only (#2 D-30, @ABilenduke): each is
+// allowed only until the version installed is 7 days old, after which the line must come out of .npmrc.
 const TEMPORARY_EXEMPTIONS = {
-  nuxt: "2026-10-12T22:34:00Z",
-  "@nuxt/kit": "2026-10-12T22:34:00Z",
-  "@nuxt/schema": "2026-10-12T22:34:00Z",
-  "@nuxt/nitro-server": "2026-10-12T22:34:00Z",
-  "@nuxt/vite-builder": "2026-10-12T22:34:00Z",
-  "@nuxt/vite-server": "2026-10-12T22:34:00Z",
-  "@nuxt/cli": "2026-10-16T15:37:00Z",
-  "my-bad": "2026-10-14T09:45:00Z",
-  "package-manager-detector": "2026-10-12T05:38:00Z",
+  "node-forge": "2026-11-03T14:09:15Z",
 };
 const LIFECYCLE = new Set([
   "preinstall",
@@ -63,7 +55,7 @@ function npmrc() {
     const until = exempt && TEMPORARY_EXEMPTIONS[exempt];
     if (!until) problems.push(`.npmrc has an unexpected setting: ${line.split("=")[0]}`);
     else if (Date.now() >= Date.parse(until)) {
-      problems.push(`.npmrc still exempts ${exempt}, 7 days old since ${until}: remove it (D-27)`);
+      problems.push(`.npmrc still exempts ${exempt}, 7 days old since ${until}: remove it (D-30)`);
     }
   }
   return problems;
