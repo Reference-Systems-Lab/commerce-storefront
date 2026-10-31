@@ -1,6 +1,6 @@
 # 1. The storefront's stack
 
-- **Status:** Accepted
+- **Status:** Accepted; amended 2026-10-31 (what changed before v0.1.0)
 - **Date:** 2026-10-09
 
 ## Context
@@ -202,3 +202,26 @@ This record covers both. Where the skeleton changed a spike decision, it says so
 - Nuxt 5 and Nitro 3 are expected in Q4 2026. `compatibilityVersion: 5` keeps that migration small.
 - The runtime's Node major moves with Chainguard's `latest`. Dependabot proposes each new digest, and
   CI runs every check against it before it merges.
+
+## Amendments
+
+- **2026-10-31:** what changed between this record and v0.1.0 (#2 `journal:S11`, `journal:S12`). Where
+  the text above differs, this wins.
+  - **The `//` path:** a Nitro plugin now redirects a path starting with `//` to one leading slash, so
+    the home page always has its headers (#2 D-29). No such path reaches the prerendered file without
+    them.
+  - **Shared configs:** the Nuxt adjustments moved upstream (design-system#8). The storefront takes
+    them from `eslint-config` and `tsconfig` 0.2.0, pinned by `^0.2.0`, and keeps no local copies.
+  - **The advisories:** GitHub withdrew the braces advisory on 2026-10-23, and node-forge 1.4.1 fixed
+    its own, with 1.4.2 fixing a regression, so the first merge went ahead on 2026-10-31 with nothing
+    allowlisted (#2 D-3).
+  - **The release-age window:** node-forge 1.4.2 was installed before its seven days, as commerce ADR
+    0001's deliberate exception for a security fix. One expiring `.npmrc` line allows it until
+    2026-11-03, and `check-repo.mjs` enforces that date (#2 D-30).
+  - **Node:** every JavaScript repository moved to Node 26 on 2026-10-11 (commerce#11). The build and
+    runtime bases are on 26.12.1, for the October 2026 security release.
+  - **The backend:** the CI stub runs v0.1.1, the release the platform runs.
+  - **Nuxt:** v0.1.0 ships 4.6.0, the release chosen when it was pinned. Newer ones are past the
+    window, and Dependabot proposes them.
+  - **GHCR:** the first push created a public package, taking the repository's visibility, so no
+    manual step was needed.
