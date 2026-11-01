@@ -101,8 +101,8 @@ The release workflow then runs these steps, stopping at the first failure:
    SBOM and a signed build-provenance attestation.
 
 A rerun never pushes a version that is already on GHCR. Every pull request rehearses the build
-(`make rehearse`): both platforms, with the SBOM and provenance, and no token in any layer. The first
-release creates a private package, which must be made public once (it can't be made private again).
+(`make rehearse`): both platforms, with the SBOM and provenance, and no token in any layer. The
+package is public, taking the repository's visibility, so the platform pulls it anonymously.
 
 ## Verifying
 
