@@ -7,6 +7,9 @@
  * newlines and read "\" as "/": "//%09/evil.example" would otherwise send them to evil.example. Only
  * a path on this site is ever sent; anything else goes to "/".
  */
+import { sendRedirect } from "h3";
+import { defineNitroPlugin } from "nitropack/runtime";
+
 const SITE = "http://storefront.invalid";
 
 export default defineNitroPlugin((nitroApp) => {

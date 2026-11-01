@@ -29,7 +29,7 @@ services:
   grype:
     <<: *tool
     network_mode: bridge
-    image: anchore/grype:v0.120.0@sha256:5c88961f4130e830542d441c7ed6c78baa28e799163abac53d2be4923fb5ab7d
+    image: anchore/grype:v0.121.0@sha256:621d56d1d68106b787022c81546f7e0a36202a25d1239f0c20195fab8c16f7ea
     tmpfs: ["/tmp:size=4g,mode=1777"] # it unpacks each image archive here
     environment:
       GRYPE_DB_CACHE_DIR: /cache
