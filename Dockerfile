@@ -23,7 +23,7 @@ RUN --network=none node_modules/.bin/nuxt build \
  && if [ -n "$(find .output -name '*.node' -print -quit)" ]; then echo 'error: .output holds a native module' >&2; exit 1; fi \
  && grep -q '"preset": "node-server"' .output/nitro.json
 
-FROM cgr.dev/chainguard/node:latest@sha256:6cb70d6b2a324e491263949ea9f58938ed19031ef478e0bdb0b1810f96f8b400
+FROM cgr.dev/chainguard/node:latest@sha256:c7b5d6aab019deb6cf69e66c06c28cfeafdf8dfc138c3c13403d500f82e9b5bf
 # Ours, replacing the labels the base sets about itself.
 LABEL org.opencontainers.image.source="https://github.com/Reference-Systems-Lab/commerce-storefront" \
       org.opencontainers.image.url="https://github.com/Reference-Systems-Lab/commerce-storefront" \
