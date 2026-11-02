@@ -20,7 +20,7 @@
   "dependencies": {
     "@reference-systems-lab/commerce-api": "^0.1.0",
     "@reference-systems-lab/tokens": "^0.1.0",
-    "h3": "1.15.11",
+    "h3": "2.0.8",
     "nitropack": "2.13.5",
     "nuxt": "4.6.2",
     "nuxt-security": "2.7.0"
