@@ -21,8 +21,8 @@
     "@reference-systems-lab/commerce-api": "^0.1.0",
     "@reference-systems-lab/tokens": "^0.1.0",
     "h3": "1.15.11",
-    "nitropack": "2.13.5",
-    "nuxt": "4.6.2",
+    "nitropack": "2.13.6",
+    "nuxt": "4.6.3",
     "nuxt-security": "2.7.0"
   },
   "devDependencies": {
@@ -30,14 +30,14 @@
     "@reference-systems-lab/eslint-config": "^0.2.0",
     "@reference-systems-lab/prettier-config": "^0.1.0",
     "@reference-systems-lab/tsconfig": "^0.2.0",
-    "@types/node": "26.6.5",
-    "@vitest/coverage-v8": "5.0.5",
-    "eslint": "10.13.0",
-    "knip": "6.43.0",
+    "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.14.0",
+    "knip": "6.44.1",
     "prettier": "3.9.10",
     "typescript": "6.0.3",
-    "vitest": "5.0.5",
-    "vue-tsc": "3.3.13"
+    "vitest": "5.1.0",
+    "vue-tsc": "3.3.14"
   },
   "overrides": {
     "simple-git": "4.0.2"
