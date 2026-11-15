@@ -21,9 +21,7 @@ const NPMRC = [
 ];
 // Temporary exemptions from the 7-day window, for security fixes only (#2 D-30, @ABilenduke): each is
 // allowed only until the version installed is 7 days old, after which the line must come out of .npmrc.
-const TEMPORARY_EXEMPTIONS = {
-  "node-forge": "2026-11-03T14:09:15Z",
-};
+const TEMPORARY_EXEMPTIONS = {};
 const LIFECYCLE = new Set([
   "preinstall",
   "install",
