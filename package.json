@@ -22,11 +22,11 @@
     "@reference-systems-lab/tokens": "^0.1.0",
     "h3": "1.15.11",
     "nitropack": "2.13.6",
-    "nuxt": "4.6.3",
+    "nuxt": "4.6.4",
     "nuxt-security": "2.7.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
+    "@playwright/test": "1.65.0",
     "@reference-systems-lab/eslint-config": "^0.2.0",
     "@reference-systems-lab/prettier-config": "^0.1.0",
     "@reference-systems-lab/tsconfig": "^0.2.0",
@@ -40,7 +40,9 @@
     "vue-tsc": "3.3.14"
   },
   "overrides": {
-    "simple-git": "4.0.2"
+    "simple-git": "4.0.2",
+    "glob": "14.0.4",
+    "minimatch": "11.0.5"
   },
   "allowScripts": {
     "esbuild": false,

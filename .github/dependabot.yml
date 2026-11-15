@@ -31,6 +31,9 @@ updates:
         update-types: ["version-update:semver-major"]
       # Bumped by hand together with its browser image (make lint checks the pair).
       - dependency-name: "@playwright/test"
+      # h3 follows Nitro: nitropack 2 runs on h3 1.x, and server/plugins handles its events (#19).
+      - dependency-name: h3
+        update-types: ["version-update:semver-major"]
 
   # The Dockerfile's Node build image and Chainguard runtime.
   - package-ecosystem: docker
