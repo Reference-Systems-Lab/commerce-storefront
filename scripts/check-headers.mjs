@@ -264,6 +264,10 @@ if (unavailable) {
     ["/%2E%2e/products", "/products"],
     ["/x/../products?page=2", "/products?page=2"],
     ["/x/..//evil.example", "/"],
+    // A target that isn't a path (absolute-form, or "*") would reach the static handler (#19).
+    ["http://x/", "/"],
+    ["http://x/index.html", "/"],
+    ["*", "/"],
   ]) {
     const { status, location } = await raw(path);
     if (location && new URL(location, base).origin !== new URL(base).origin) {
