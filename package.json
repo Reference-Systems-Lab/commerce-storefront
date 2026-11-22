@@ -32,9 +32,9 @@
     "@reference-systems-lab/tsconfig": "^0.2.0",
     "@types/node": "26.6.6",
     "@vitest/coverage-v8": "5.1.0",
-    "eslint": "10.14.0",
-    "knip": "6.44.1",
-    "prettier": "3.9.10",
+    "eslint": "10.15.0",
+    "knip": "6.45.1",
+    "prettier": "3.10.1",
     "typescript": "6.0.3",
     "vitest": "5.1.0",
     "vue-tsc": "3.3.14"
