@@ -3,6 +3,7 @@
 // With --unavailable it expects the backend to be down and checks the 503 instead of the catalog.
 // Prints one line per problem and exits non-zero if there is any.
 import { createHash } from "node:crypto";
+import { request } from "node:http";
 
 const base = process.argv[2]?.replace(/\/$/, "");
 const unavailable = process.argv.includes("--unavailable");
@@ -54,6 +55,21 @@ async function get(path, init = {}) {
     headers: { accept: "text/html", ...init.headers },
   });
   return { response, html: await response.text() };
+}
+
+/**
+ * fetch() resolves "." and ".." segments before it sends, so a path that must reach the server as
+ * written goes out raw. Returns the status and the Location header.
+ */
+function raw(path) {
+  return new Promise((resolve, reject) => {
+    const req = request(`${base}/`, { path, headers: { accept: "text/html" } }, (response) => {
+      response.resume();
+      resolve({ status: response.statusCode, location: response.headers.location ?? null });
+    });
+    req.on("error", reject);
+    req.end();
+  });
 }
 
 /** Parses a policy into directive → sorted sources. A comma means two policies were sent. */
@@ -242,14 +258,19 @@ if (unavailable) {
     ["/\\evil.example", "/evil.example"],
     // h3 decodes %09 to a tab, which a browser drops: "/\t/evil.example" would mean evil.example.
     ["//%09/evil.example", "/"],
+    // A dot segment, spelt or encoded, would skip the route rules (#19): redirected the same way.
+    ["/./products", "/products"],
+    ["/%2e/products", "/products"],
+    ["/%2E%2e/products", "/products"],
+    ["/x/../products?page=2", "/products?page=2"],
+    ["/x/..//evil.example", "/"],
   ]) {
-    const { response } = await get(path);
-    const location = response.headers.get("location");
+    const { status, location } = await raw(path);
     if (location && new URL(location, base).origin !== new URL(base).origin) {
       fail(path, `redirects off the site, to ${location}`);
     }
-    if (response.status !== 301 || location !== want) {
-      fail(path, `status ${response.status} to ${location}, want 301 to ${want}`);
+    if (status !== 301 || location !== want) {
+      fail(path, `status ${status} to ${location}, want 301 to ${want}`);
     }
   }
 
