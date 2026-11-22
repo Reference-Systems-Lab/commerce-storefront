@@ -27,8 +27,8 @@ const products = catalog.items;
         class="product"
         :data-product="product.slug"
       >
-        <span class="product-name">{{ product.name }}</span
-        >{{ ", " }}<span class="product-price">{{ product.priceLabel }}</span>
+        <span class="product-name">{{ product.name }}</span>{{ ", "
+        }}<span class="product-price">{{ product.priceLabel }}</span>
       </li>
     </ul>
     <p><a href="/">Home</a></p>

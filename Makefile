@@ -14,7 +14,7 @@ test: ## Unit tests with coverage thresholds
 build: ## Build .output; the home page is prerendered, so no network is needed
 	npm run build
 
-backend: ## Run Postgres and the backend v0.1.1, seeded, on 127.0.0.1:18080 (for npm run dev)
+backend: ## Run Postgres and the backend v0.1.2, seeded, on 127.0.0.1:18080 (for npm run dev)
 	sh ./scripts/backend.sh up
 
 backend-down: ## Stop the development backend and remove its data
